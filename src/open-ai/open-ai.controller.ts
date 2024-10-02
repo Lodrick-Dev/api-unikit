@@ -11,8 +11,14 @@ export class OpenAiController {
     //vérification du doc
     @Post("/check")
     @UseInterceptors(FileInterceptor("File"))
-    async uploadFile(@UploadedFile() file: Express.Multer.File,@Res() res: Response, @Body("option") option: string){
-        
+    async uploadFile(@UploadedFile() file: Express.Multer.File,@Res() res: Response, @Body("option") option: string,@Body("field") field: string){
+        if(field){
+          console.log("on est làa nous avons un probleme");
+          throw new HttpException({
+            message: "Non autorisé",
+            success: false
+        }, 404);
+        }
 
         //vérifie si fichier existe
         if(!file){
