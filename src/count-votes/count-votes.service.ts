@@ -18,26 +18,24 @@ constructor(@InjectModel(CountVote.name)private countVoteModel : Model<CountVote
         throw new HttpException("Erreur de réponse attendu", 500)
     }
 
-    // Vérifiez si l'IP existe déjà dans les votes
-    const existingVote = await this.countVoteModel.findOne({ nameVote, ipAddress });
+    // Vérifiez si le doc existe
+    const existingVote = await this.countVoteModel.findOne({ nameVote});
 
     if (existingVote) {
-        throw new HttpException('Vous avez déjà voté.', 412); // Erreur 403 Forbidden
-    }
+        // Vérifiez si l'adresse IP est déjà dans le tableau
+        if (existingVote.ipAddress.includes(ipAddress)) {
+            throw new HttpException('Vous avez déjà voté.', 412); // Code 412: Precondition Failed
+        }
 
-    // Vérifier si le document existe déjà
-    const existingCount = await this.countVoteModel.findOne({ nameVote: nameVote });
+    // Si l'IP n'est pas dans le tableau, incrémentez nombVote et ajoutez l'IP
+    existingVote.nombVote += 1;
+    existingVote.ipAddress.push(ipAddress); // Ajoutez la nouvelle adresse IP
+    await existingVote.save();
 
-    if (existingCount) {
-      // Si le document existe, incrémentez nombVote de 1
-      existingCount.nombVote += 1;
-      existingCount.ipAddress = ipAddress; // Mettre à jour l'adresse IP
-      await existingCount.save();
-    
-      return { nameVote: existingCount.nameVote, nombVote: existingCount.nombVote };
+    return { nameVote: existingVote.nameVote, nombVote: existingVote.nombVote };
     } else {
        // Si le document n'existe pas, créez un nouveau avec nombVote initialisé à 1
-       const newCount = new this.countVoteModel({ nameVote, nombVote: 1, ipAddress });
+       const newCount = new this.countVoteModel({ nameVote, nombVote: 1, ipAddress:[ipAddress] });
 
        await newCount.save();
        return { nameVote: newCount.nameVote, nombVote: newCount.nombVote };

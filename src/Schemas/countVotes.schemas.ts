@@ -8,8 +8,8 @@ export class CountVote{
     @Prop({required: true,default: 0 })
     nombVote: number
 
-    @Prop({ required: true })
-    ipAddress: string; // Stocker l'adresse IP
+    @Prop({ type: [String], required: true, default: [] })
+    ipAddress: string[];
 }
 
 export const CountVoteSchema = SchemaFactory.createForClass(CountVote)
